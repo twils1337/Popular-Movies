@@ -1,5 +1,8 @@
 package com.example.android.popular_movies.model;
 
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
@@ -20,7 +23,7 @@ public class Movie {
     private String overview;
     private double popularity;
     private String posterPath ;
-    private Calendar releaseDate ;
+    private DateTime releaseDate ;
     private String title;
     private boolean isVideo;
     private double voteAvg;
@@ -40,9 +43,7 @@ public class Movie {
         this.overview = overview;
         this.popularity = popularity;
         this.posterPath = posterPath;
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        this.releaseDate = calendar;
+        this.releaseDate = DateTimeFormat.forPattern("yyyy-MM-dd").parseDateTime(releaseDate);
         this.title = title;
         this.isVideo = isVideo;
         this.voteAvg = voteAvg;
@@ -127,9 +128,7 @@ public class Movie {
     }
 
     public void setReleaseDate(String date){
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        this.releaseDate = calendar;
+        this.releaseDate =  DateTimeFormat.forPattern("yyyy-MM-dd").parseDateTime(date);
     }
 
     public String getTitle(){
