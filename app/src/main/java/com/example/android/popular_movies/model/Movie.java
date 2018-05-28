@@ -3,14 +3,10 @@ package com.example.android.popular_movies.model;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
-@SuppressWarnings("ALL")
 public class Movie {
-    final static String moviePosterURLPrefix =  "http://image.tmdb.org/t/p/";
+    private final String moviePosterURLPrefix =  "http://image.tmdb.org/t/p/";
     // image sizes: "w92", "w154", "w185", "w342", "w500", "w780", or "original"
     private final String defaultThumbnailSize = "w185/";
 
@@ -28,6 +24,7 @@ public class Movie {
     private boolean isVideo;
     private double voteAvg;
     private Integer voteCount;
+    private String API_KEY =
     
 
     public Movie(boolean isAdult, String backDropPath, List<Integer> genreIDs, Integer ID,
