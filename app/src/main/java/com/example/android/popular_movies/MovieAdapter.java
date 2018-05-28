@@ -25,6 +25,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     private List<Movie> mMovies;
 
+    public MovieAdapter(List<Movie> movies){
+        mMovies = movies;
+    }
+
     @Override
     public int getItemCount() {
         return mMovies == null ? 0 : mMovies.size();
@@ -47,50 +51,9 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         holder.bind(movie);
     }
 
-    public void fetchMovieData(Context context){
-        new MovieQueryTask(context).execute();
-    }
-
-    private void createMovieList(Context context, String jsonResult) {
-        try {
-                JSONObject json = new JSONObject(jsonResult);
-                mMovies = new ArrayList<>();
-                String resultsKey = "results";
-                JSONArray resultsJson = json.getJSONArray(resultsKey);
-    //            Iterator<String> keys = resultsJson.keys();
-                for (int i = 0; i < resultsJson.length(); ++i){
-                    JSONObject movieJson = resultsJson.getJSONObject(i);
-                    Movie movie = new Movie(
-                            movieJson.getBoolean("adult"),
-                            movieJson.getString("backdrop_path"),
-                            getListFromJsonArr(movieJson.getJSONArray("genre_ids")),
-                            movieJson.getInt("id"),
-                            movieJson.getString("original_language"),
-                            movieJson.getString("original_title"),
-                            movieJson.getString("overview"),
-                            movieJson.getDouble("popularity"),
-                            movieJson.getString("poster_path"),
-                            movieJson.getString("release_date"),
-                            movieJson.getString("title"),
-                            movieJson.getBoolean("video"),
-                            movieJson.getDouble("vote_average"),
-                            movieJson.getInt("vote_count")
-                    );
-                    movie.setAPI_KEY(context);
-                    mMovies.add(movie);
-                }
-        } catch (JSONException e) {
-            Log.e("Json Error", "doInBackground: " + e.getMessage());
-        }
-    }
-    private List<Integer> getListFromJsonArr(JSONArray arr)
-            throws JSONException{
-        List<Integer> genreIDs = new ArrayList<>();
-        for (int i = 0; i < arr.length(); ++i){
-            genreIDs.add(arr.getInt(i));
-        }
-        return genreIDs;
-    }
+//    public void fetchMovieData(Context context){
+//        new MovieQueryTask(context).execute();
+//    }
 
 
 
@@ -109,24 +72,5 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
                     .load(movie.getFullPosterURL())
                     .into(movieImageView);
         }
-    }
-
-    class MovieQueryTask extends AsyncTask<URL, Void, String> {
-        private Context context;
-
-        public MovieQueryTask(Context context){
-            this.context = context;
-        }
-
-        @Override
-        protected String doInBackground(URL... urls) {
-            return NetworkMovieUtils.getResponseFromURL(context,true);
-        }
-
-        @Override
-        protected void onPostExecute(String jsonResult) {
-            createMovieList(context, jsonResult);
-        }
-
     }
 }
