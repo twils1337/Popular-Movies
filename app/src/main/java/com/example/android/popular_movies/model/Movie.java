@@ -1,5 +1,9 @@
 package com.example.android.popular_movies.model;
 
+import android.content.Context;
+
+import com.example.android.popular_movies.R;
+
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
@@ -24,13 +28,13 @@ public class Movie {
     private boolean isVideo;
     private double voteAvg;
     private Integer voteCount;
-    private String API_KEY =
+    private String API_KEY;
     
 
     public Movie(boolean isAdult, String backDropPath, List<Integer> genreIDs, Integer ID,
-             String originalLang, String originalTitle, String overview, double popularity,
-             String posterPath, String releaseDate, String title, boolean isVideo, double voteAvg,
-             Integer voteCount) {
+                 String originalLang, String originalTitle, String overview, double popularity,
+                 String posterPath, String releaseDate, String title, boolean isVideo, double voteAvg,
+                 Integer voteCount) {
         this.isAdult = isAdult;
         this.backDropPath = backDropPath;
         this.genreIDs = genreIDs;
@@ -44,6 +48,7 @@ public class Movie {
         this.title = title;
         this.isVideo = isVideo;
         this.voteAvg = voteAvg;
+        this.voteCount = voteCount;
     }
 
     public boolean getIsAdult(){
@@ -159,5 +164,9 @@ public class Movie {
         else{
             return null;
         }
+    }
+
+    public void setAPI_KEY(Context context) {
+        this.API_KEY = context.getResources().getString(R.string.api_key);
     }
 }

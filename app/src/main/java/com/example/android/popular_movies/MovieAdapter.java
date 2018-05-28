@@ -15,7 +15,6 @@ import com.squareup.picasso.Picasso;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -37,45 +36,49 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.movie_list_item, parent, false);
 
-        return new MovieViewHolder(parent.getContext(), view);
+        return new MovieViewHolder(context, view);
     }
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
         Movie movie = mMovies.get(position);
+        if(android.os.Debug.isDebuggerConnected())
+            android.os.Debug.waitForDebugger();
         holder.bind(movie);
     }
 
-    public void fetchMovieData(){
-        new MovieQueryTask().execute();
+    public void fetchMovieData(Context context){
+        new MovieQueryTask(context).execute();
     }
 
-    private void createMovieList(String jsonResult) {
+    private void createMovieList(Context context, String jsonResult) {
         try {
-            JSONObject json = new JSONObject(jsonResult);
-            mMovies = new ArrayList<>();
-            Iterator<String> keys = json.keys();
-            while (keys.hasNext()) {
-                String key = keys.next();
-                JSONObject value = json.getJSONObject(key);
-                Movie movie = new Movie(
-                        value.getBoolean("adult"),
-                        value.getString("backdrop_path"),
-                        getListFromJsonArr(value.getJSONArray("genre_ids")),
-                        value.getInt("id"),
-                        value.getString("original_language"),
-                        value.getString("original_title"),
-                        value.getString("overview"),
-                        value.getDouble("popularity"),
-                        value.getString("poster_path"),
-                        value.getString("release_date"),
-                        value.getString("title"),
-                        value.getBoolean("video"),
-                        value.getDouble("vote_average"),
-                        value.getInt("vote_count")
-                );
-                mMovies.add(movie);
-            }
+                JSONObject json = new JSONObject(jsonResult);
+                mMovies = new ArrayList<>();
+                String resultsKey = "results";
+                JSONArray resultsJson = json.getJSONArray(resultsKey);
+    //            Iterator<String> keys = resultsJson.keys();
+                for (int i = 0; i < resultsJson.length(); ++i){
+                    JSONObject movieJson = resultsJson.getJSONObject(i);
+                    Movie movie = new Movie(
+                            movieJson.getBoolean("adult"),
+                            movieJson.getString("backdrop_path"),
+                            getListFromJsonArr(movieJson.getJSONArray("genre_ids")),
+                            movieJson.getInt("id"),
+                            movieJson.getString("original_language"),
+                            movieJson.getString("original_title"),
+                            movieJson.getString("overview"),
+                            movieJson.getDouble("popularity"),
+                            movieJson.getString("poster_path"),
+                            movieJson.getString("release_date"),
+                            movieJson.getString("title"),
+                            movieJson.getBoolean("video"),
+                            movieJson.getDouble("vote_average"),
+                            movieJson.getInt("vote_count")
+                    );
+                    movie.setAPI_KEY(context);
+                    mMovies.add(movie);
+                }
         } catch (JSONException e) {
             Log.e("Json Error", "doInBackground: " + e.getMessage());
         }
@@ -92,8 +95,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
 
     public class MovieViewHolder extends RecyclerView.ViewHolder{
-        private ImageView movieImageView;
-        private Context context;
+        public ImageView movieImageView;
+        public Context context;
         MovieViewHolder(Context context, View itemView)
         {
             super(itemView);
@@ -109,15 +112,20 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     }
 
     class MovieQueryTask extends AsyncTask<URL, Void, String> {
+        private Context context;
+
+        public MovieQueryTask(Context context){
+            this.context = context;
+        }
 
         @Override
         protected String doInBackground(URL... urls) {
-            return NetworkMovieUtils.getResponseFromURL(true);
+            return NetworkMovieUtils.getResponseFromURL(context,true);
         }
 
         @Override
         protected void onPostExecute(String jsonResult) {
-            createMovieList(jsonResult);
+            createMovieList(context, jsonResult);
         }
 
     }

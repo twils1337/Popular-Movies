@@ -1,7 +1,10 @@
 package com.example.android.popular_movies.utilities;
 
+import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
+
+import com.example.android.popular_movies.R;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,16 +13,20 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import javax.security.auth.login.LoginException;
+
 public class NetworkMovieUtils {
-    private final static String movieAPiUrlPrefix = "https://api.themoviedb.org/3/movie?";
+    private final static String movieAPiUrlPrefix = "https://api.themoviedb.org/3/movie/";
 
 
 
-    private static URL buildURL(boolean sortByPopularity){
+    private static URL buildURL(Context context, boolean sortByPopularity){
         Uri uri = Uri.parse(movieAPiUrlPrefix).buildUpon()
-                .appendQueryParameter("sorted_by", sortByPopularity ? "popular" : "top_rated")
+                .appendPath(sortByPopularity ? "popular" : "top_rated")
+                .appendQueryParameter("api_key",context.getResources().getString(R.string.api_key))
                 .build();
         URL url = null;
+        Log.i("INFO=============", uri.toString() );
         try {
             url = new URL(uri.toString());
         }
@@ -29,9 +36,9 @@ public class NetworkMovieUtils {
         return url;
     }
 
-    public static String getResponseFromURL(boolean sortByPopular){
+    public static String getResponseFromURL(Context context, boolean sortByPopular){
         String result = null;
-        URL url = buildURL(sortByPopular);
+        URL url = buildURL(context, sortByPopular);
         try {
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
