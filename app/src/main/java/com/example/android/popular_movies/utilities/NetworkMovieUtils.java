@@ -20,13 +20,12 @@ public class NetworkMovieUtils {
 
 
 
-    private static URL buildURL(Context context, boolean sortByPopularity){
+    private static URL buildURL(String apiKey, boolean sortByPopularity){
         Uri uri = Uri.parse(movieAPiUrlPrefix).buildUpon()
                 .appendPath(sortByPopularity ? "popular" : "top_rated")
-                .appendQueryParameter("api_key",context.getResources().getString(R.string.api_key))
+                .appendQueryParameter("api_key", apiKey)
                 .build();
         URL url = null;
-        Log.i("INFO=============", uri.toString() );
         try {
             url = new URL(uri.toString());
         }
@@ -36,9 +35,9 @@ public class NetworkMovieUtils {
         return url;
     }
 
-    public static String getResponseFromURL(Context context, boolean sortByPopular){
+    public static String getResponseFromURL(String apiKey, boolean sortByPopular){
         String result = null;
-        URL url = buildURL(context, sortByPopular);
+        URL url = buildURL(apiKey, sortByPopular);
         try {
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");

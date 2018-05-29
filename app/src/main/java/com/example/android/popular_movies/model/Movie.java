@@ -28,7 +28,6 @@ public class Movie {
     private boolean isVideo;
     private double voteAvg;
     private Integer voteCount;
-    private String API_KEY;
     
 
     public Movie(boolean isAdult, String backDropPath, List<Integer> genreIDs, Integer ID,
@@ -164,9 +163,5 @@ public class Movie {
         else{
             return null;
         }
-    }
-
-    public void setAPI_KEY(Context context) {
-        this.API_KEY = context.getResources().getString(R.string.api_key);
     }
 }
