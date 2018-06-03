@@ -6,7 +6,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.view.View.OnClickListener;
 
+import com.example.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
 import com.example.android.popular_movies.model.Movie;
 import com.squareup.picasso.Picasso;
 
@@ -16,9 +18,11 @@ import java.util.List;
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder>{
 
     private List<Movie> mMovies;
+    private final MovieAdapterOnClickHandler mParentClickListener;
 
-    public MovieAdapter(List<Movie> movies){
+    public MovieAdapter(List<Movie> movies, MovieAdapterOnClickHandler handler){
         mMovies = movies;
+        mParentClickListener = handler;
     }
 
     @Override
@@ -42,8 +46,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     }
 
 
-
-    public class MovieViewHolder extends RecyclerView.ViewHolder{
+    public class MovieViewHolder extends RecyclerView.ViewHolder
+                                 implements OnClickListener {
         public ImageView movieImageView;
         public Context context;
         MovieViewHolder(Context context, View itemView)
@@ -51,12 +55,20 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
             super(itemView);
             this.context = context;
             movieImageView = itemView.findViewById(R.id.ivMovie);
+            itemView.setOnClickListener(this);
         }
 
         void bind(Movie movie){
             Picasso.with(context)
                     .load(movie.getFullPosterURL())
                     .into(movieImageView);
+        }
+
+        @Override
+        public void onClick(View v) {
+            int movieIndex = getAdapterPosition();
+            Movie movie = mMovies.get(movieIndex);
+            mParentClickListener.onClick(movie);
         }
     }
 }

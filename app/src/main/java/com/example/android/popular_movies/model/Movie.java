@@ -3,32 +3,52 @@ package com.example.android.popular_movies.model;
 import android.content.Context;
 
 import com.example.android.popular_movies.R;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Movie {
     private final String moviePosterURLPrefix =  "http://image.tmdb.org/t/p/";
     // image sizes: "w92", "w154", "w185", "w342", "w500", "w780", or "original"
     private final String defaultThumbnailSize = "w185/";
-
+    @JsonProperty("isAdult")
     private boolean isAdult;
+    @JsonProperty("backDropPath")
     private String backDropPath;
+    @JsonProperty("genreIDs")
     private List<Integer> genreIDs;
+    @JsonProperty("ID")
     private Integer ID;
+    @JsonProperty("originalLang")
     private String originalLang;
+    @JsonProperty("originalTitle")
     private String originalTitle;
+    @JsonProperty("overview")
     private String overview;
+    @JsonProperty("popularity")
     private double popularity;
+    @JsonProperty("posterPath")
     private String posterPath ;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private DateTime releaseDate ;
+    @JsonProperty("title")
     private String title;
+    @JsonProperty("isVideo")
     private boolean isVideo;
+    @JsonProperty("voteAvg")
     private double voteAvg;
+    @JsonProperty("voteCount")
     private Integer voteCount;
-    
+    @JsonProperty("runTime")
+    private int runTime;
+
+    public Movie(){}
 
     public Movie(boolean isAdult, String backDropPath, List<Integer> genreIDs, Integer ID,
                  String originalLang, String originalTitle, String overview, double popularity,
@@ -48,6 +68,7 @@ public class Movie {
         this.isVideo = isVideo;
         this.voteAvg = voteAvg;
         this.voteCount = voteCount;
+        runTime = -1;
     }
 
     public boolean getIsAdult(){
@@ -124,8 +145,8 @@ public class Movie {
         posterPath = path;
     }
 
-    public String getReleaseDate(){
-        return releaseDate.toString();
+    public DateTime getReleaseDate(){
+        return releaseDate;
     }
 
     public void setReleaseDate(String date){
@@ -163,5 +184,13 @@ public class Movie {
         else{
             return null;
         }
+    }
+
+    public int getRunTime(){
+        return runTime;
+    }
+
+    public void setRunTime(int runTime) {
+        this.runTime = runTime;
     }
 }

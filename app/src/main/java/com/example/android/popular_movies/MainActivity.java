@@ -16,16 +16,21 @@ import android.view.MenuItem;
 
 import com.example.android.popular_movies.model.Movie;
 import com.example.android.popular_movies.utilities.NetworkMovieUtils;
+import com.example.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.joda.JodaModule;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener{
+public class MainActivity extends AppCompatActivity
+                          implements SharedPreferences.OnSharedPreferenceChangeListener,
+                                     MovieAdapterOnClickHandler{
 
     private MovieAdapter mAdapter;
     private RecyclerView mMoviesRV;
@@ -36,8 +41,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setUpSharedPreferences();
-        MovieQueryTask mqt = new MovieQueryTask(getString(R.string.api_key), sortByPopular);
-        mqt.execute();
+        MovieQueryTask mqt = new MovieQueryTask(this, getString(R.string.api_key), sortByPopular);
+        mqt.execute(-1);
         mMoviesRV = findViewById(R.id.rvMovies);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this,2);
         mMoviesRV.setLayoutManager(gridLayoutManager);
@@ -126,30 +131,96 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if(key.equals(getString(R.string.sort_by_key))){
             loadSortPreference(sharedPreferences);
-            MovieQueryTask mqt = new MovieQueryTask(getString(R.string.api_key), sortByPopular);
-            mqt.execute();
+            MovieQueryTask mqt = new MovieQueryTask(this, getString(R.string.api_key), sortByPopular);
+            mqt.execute(-1);
         }
     }
 
-    public class MovieQueryTask extends AsyncTask<URL, Void, String> {
-        private String apiKey;
-        private boolean sortByPopularity;
+    @Override
+    public void onClick(Movie movie) {
+        try {
+            if (movie.getRunTime() == -1) {
+                MovieQueryTask mqt = new MovieQueryTask(movie, getString(R.string.api_key), this);
+                mqt.execute(movie.getID());
+            }
+            else{
+                translateMovieToJsonAndStartIntent(movie,this);
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
-        public MovieQueryTask(String apiKey, boolean sortByPopularity){
-            this.apiKey = apiKey;
-            this.sortByPopularity = sortByPopularity;
+    private int getMovieRunTime(String json){
+        int runTime = -1;
+        try {
+            JSONObject jsonObject = new JSONObject(json);
+            runTime = jsonObject.getInt("runtime");
+        } catch(JSONException e){
+            e.printStackTrace();
+        }
+        return runTime;
+    }
+
+    public class MovieQueryTask extends AsyncTask<Integer, Void, String> {
+        private String mApiKey;
+        private MovieAdapterOnClickHandler mHandler;
+        private boolean mSortByPopularity;
+        private boolean grabMovieList;
+        private Movie mMovie;
+        private Context mContext;
+
+        public MovieQueryTask(MovieAdapterOnClickHandler handler, String apiKey, boolean sortByPopularity){
+            mHandler = handler;
+            mApiKey = apiKey;
+            mSortByPopularity = sortByPopularity;
+            grabMovieList = true;
+            mMovie = null;
+        }
+
+        public MovieQueryTask(Movie movie, String apiKey, Context context){
+            mMovie = movie;
+            mApiKey = apiKey;
+            mContext = context;
         }
 
         @Override
-        protected String doInBackground(URL... urls) {
-            return NetworkMovieUtils.getResponseFromURL(apiKey,sortByPopularity);
+        protected String doInBackground(Integer... IDs) {
+            String result = NetworkMovieUtils.getResponseFromURL(mApiKey, mSortByPopularity, IDs[0]);
+            if (IDs.length > 0 && IDs[0] != -1){
+                grabMovieList = false;
+            }
+            return result;
         }
 
         @Override
         protected void onPostExecute(String jsonResult) {
-            List<Movie> movies = createMovieList(jsonResult);
-            mAdapter = new MovieAdapter(movies);
-            mMoviesRV.setAdapter(mAdapter);
+            if (grabMovieList){
+                List<Movie> movies = createMovieList(jsonResult);
+                mAdapter = new MovieAdapter(movies, mHandler);
+                mMoviesRV.setAdapter(mAdapter);
+            }
+            else{
+                int runTime = getMovieRunTime(jsonResult);
+                mMovie.setRunTime(runTime);
+                try{
+                    translateMovieToJsonAndStartIntent(mMovie, mContext);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+
+            }
         }
     }
+    private void translateMovieToJsonAndStartIntent(Movie movie, Context context) throws JsonProcessingException {
+        Intent startMovieDetailActivity = new Intent(context, MovieDetailActivity.class);
+        ObjectMapper om = new ObjectMapper();
+        om.registerModule(new JodaModule());
+        om.configure(com.fasterxml.jackson.databind.SerializationFeature.
+                WRITE_DATES_AS_TIMESTAMPS , false);
+        String movieJson = om.writeValueAsString(movie);
+        startMovieDetailActivity.putExtra("MovieJSON", movieJson);
+        startActivity(startMovieDetailActivity);
+    }
 }
+

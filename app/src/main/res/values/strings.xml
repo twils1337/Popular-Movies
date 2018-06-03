@@ -1,8 +1,14 @@
 <resources>
     <string name="app_name">Popular-Movies</string>
-    <string name="default_image_description">Image for Movie</string>
     <string name="api_key"></string>
-    <string name="title_activity_settings">Settings</string>
+
+    <string name="default_image_description">Image for Movie</string>
+
+    <string name="default_header_text">Movie Name</string>
+    <string name="default_release_date">2020</string>
+    <string name="default_run_time">60 min</string>
+    <string name="default_rating">9.5/10</string>
+    <string name="default_synopsis">Summary</string>
 
     <!-- Strings related to Settings -->
     <string name="action_settings">Settings</string>
