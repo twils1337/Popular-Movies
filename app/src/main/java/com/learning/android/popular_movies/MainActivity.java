@@ -1,4 +1,4 @@
-package com.example.android.popular_movies;
+package com.learning.android.popular_movies;
 
 import android.content.Context;
 import android.content.Intent;
@@ -19,9 +19,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.example.android.popular_movies.model.Movie;
-import com.example.android.popular_movies.utilities.NetworkMovieUtils;
-import com.example.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
+import com.learning.android.popular_movies.model.Movie;
+import com.learning.android.popular_movies.utilities.NetworkMovieUtils;
+import com.learning.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;

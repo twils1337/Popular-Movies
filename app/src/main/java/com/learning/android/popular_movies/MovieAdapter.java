@@ -1,4 +1,4 @@
-package com.example.android.popular_movies;
+package com.learning.android.popular_movies;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,8 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.view.View.OnClickListener;
 
-import com.example.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
-import com.example.android.popular_movies.model.Movie;
+import com.learning.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
+import com.learning.android.popular_movies.model.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;

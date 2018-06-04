@@ -1,4 +1,4 @@
-package com.example.android.popular_movies.utilities;
+package com.learning.android.popular_movies.utilities;
 
 import android.content.Context;
 import android.net.Uri;

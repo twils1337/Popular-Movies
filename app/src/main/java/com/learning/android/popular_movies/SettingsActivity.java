@@ -1,4 +1,4 @@
-package com.example.android.popular_movies;
+package com.learning.android.popular_movies;
 
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.ActionBar;

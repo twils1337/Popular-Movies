@@ -1,17 +1,15 @@
-package com.example.android.popular_movies;
+package com.learning.android.popular_movies;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
-import com.example.android.popular_movies.model.Movie;
+import com.learning.android.popular_movies.model.Movie;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.squareup.picasso.Picasso;
-
-import org.joda.time.DateTime;
 
 import java.io.IOException;
 
@@ -68,7 +66,5 @@ public class MovieDetailActivity extends AppCompatActivity {
         mRating = findViewById(R.id.tv_rating);
 
         mSynopsis = findViewById(R.id.tv_synopsis);
-//        mMoviePoster.getLayoutParams().width = this.getResources().getDisplayMetrics().heightPixels*4/5;
-
     }
 }

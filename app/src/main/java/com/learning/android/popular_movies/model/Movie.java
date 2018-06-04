@@ -1,8 +1,8 @@
-package com.example.android.popular_movies.model;
+package com.learning.android.popular_movies.model;
 
 import android.content.Context;
 
-import com.example.android.popular_movies.R;
+import com.learning.android.popular_movies.R;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
