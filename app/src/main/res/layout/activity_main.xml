@@ -2,11 +2,33 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvMovies"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="vertical">
+        android:scrollbars="vertical"
+        android:visibility="gone">
     </android.support.v7.widget.RecyclerView>
+    <TextView
+        android:id="@+id/tv_connection_Failure"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/default_error_msg"
+        android:textSize="25sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        android:gravity="center"/>
+    <Button
+        android:id="@+id/retry_button"
+        android:layout_width="100dp"
+        android:layout_height="50dp"
+        android:visibility="gone"
+        android:padding="8sp"
+        android:textSize="15sp"
+        android:text="@string/retry_button_text"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:onClick="retryOnClick"/>
 </LinearLayout>

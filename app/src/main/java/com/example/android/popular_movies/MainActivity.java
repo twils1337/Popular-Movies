@@ -3,6 +3,8 @@ package com.example.android.popular_movies;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +15,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.example.android.popular_movies.model.Movie;
 import com.example.android.popular_movies.utilities.NetworkMovieUtils;
@@ -34,13 +39,22 @@ public class MainActivity extends AppCompatActivity
 
     private MovieAdapter mAdapter;
     private RecyclerView mMoviesRV;
+    private TextView mConnectionFailureTV;
+    private Button mRetryButton;
     private boolean sortByPopular;
+    boolean mIsConnected = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mConnectionFailureTV = findViewById(R.id.tv_connection_Failure);
+        mRetryButton = findViewById(R.id.retry_button);
         setUpSharedPreferences();
+        GetMoviesAndLoadUI();
+    }
+
+    private void GetMoviesAndLoadUI() {
         MovieQueryTask mqt = new MovieQueryTask(this, getString(R.string.api_key), sortByPopular);
         mqt.execute(-1);
         mMoviesRV = findViewById(R.id.rvMovies);
@@ -65,6 +79,10 @@ public class MainActivity extends AppCompatActivity
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void setErrorMessage(){
+        mConnectionFailureTV.setText(R.string.connection_error_text);
     }
 
     private void setUpSharedPreferences(){
@@ -94,28 +112,33 @@ public class MainActivity extends AppCompatActivity
             JSONArray resultsJson = json.getJSONArray(resultsKey);
             for (int i = 0; i < resultsJson.length(); ++i){
                 JSONObject movieJson = resultsJson.getJSONObject(i);
-                Movie movie = new Movie(
-                        movieJson.getBoolean("adult"),
-                        movieJson.getString("backdrop_path"),
-                        getListFromJsonArr(movieJson.getJSONArray("genre_ids")),
-                        movieJson.getInt("id"),
-                        movieJson.getString("original_language"),
-                        movieJson.getString("original_title"),
-                        movieJson.getString("overview"),
-                        movieJson.getDouble("popularity"),
-                        movieJson.getString("poster_path"),
-                        movieJson.getString("release_date"),
-                        movieJson.getString("title"),
-                        movieJson.getBoolean("video"),
-                        movieJson.getDouble("vote_average"),
-                        movieJson.getInt("vote_count")
-                );
+                Movie movie = createMovieFromJson(movieJson);
                 movies.add(movie);
             }
         } catch (JSONException e) {
             Log.e("Json Error", "doInBackground: " + e.getMessage());
         }
         return movies;
+    }
+
+    private Movie createMovieFromJson(JSONObject jsonObject) throws JSONException{
+        Movie movie = new Movie(
+                jsonObject.getBoolean("adult"),
+                jsonObject.getString("backdrop_path"),
+                getListFromJsonArr(jsonObject.getJSONArray("genre_ids")),
+                jsonObject.getInt("id"),
+                jsonObject.getString("original_language"),
+                jsonObject.getString("original_title"),
+                jsonObject.getString("overview"),
+                jsonObject.getDouble("popularity"),
+                jsonObject.getString("poster_path"),
+                jsonObject.getString("release_date"),
+                jsonObject.getString("title"),
+                jsonObject.getBoolean("video"),
+                jsonObject.getDouble("vote_average"),
+                jsonObject.getInt("vote_count")
+        );
+        return movie;
     }
 
     private List<Integer> getListFromJsonArr(JSONArray arr)
@@ -125,6 +148,10 @@ public class MainActivity extends AppCompatActivity
             genreIDs.add(arr.getInt(i));
         }
         return genreIDs;
+    }
+
+    public void retryOnClick(View v){
+        GetMoviesAndLoadUI();
     }
 
     @Override
@@ -186,32 +213,54 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         protected String doInBackground(Integer... IDs) {
-            String result = NetworkMovieUtils.getResponseFromURL(mApiKey, mSortByPopularity, IDs[0]);
-            if (IDs.length > 0 && IDs[0] != -1){
-                grabMovieList = false;
+            if (isOnline()){
+                mIsConnected = true;
+                String result = NetworkMovieUtils.getResponseFromURL(mApiKey, mSortByPopularity, IDs[0]);
+                if (IDs.length > 0 && IDs[0] != -1){
+                    grabMovieList = false;
+                }
+                return result;
             }
-            return result;
+            else{
+                mIsConnected = false;
+                return "";
+            }
         }
 
         @Override
         protected void onPostExecute(String jsonResult) {
-            if (grabMovieList){
-                List<Movie> movies = createMovieList(jsonResult);
-                mAdapter = new MovieAdapter(movies, mHandler);
-                mMoviesRV.setAdapter(mAdapter);
+            setMainView(mIsConnected);
+            if (mIsConnected){
+                if (grabMovieList){
+                    mMoviesRV.setVisibility(View.VISIBLE);
+                    List<Movie> movies = createMovieList(jsonResult);
+                    mAdapter = new MovieAdapter(movies, mHandler);
+                    mMoviesRV.setAdapter(mAdapter);
+                }
+                else{
+                    int runTime = getMovieRunTime(jsonResult);
+                    mMovie.setRunTime(runTime);
+                    try{
+                        translateMovieToJsonAndStartIntent(mMovie, mContext);
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
             }
             else{
-                int runTime = getMovieRunTime(jsonResult);
-                mMovie.setRunTime(runTime);
-                try{
-                    translateMovieToJsonAndStartIntent(mMovie, mContext);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-
+                setErrorMessage();
             }
         }
     }
+
+    public void setMainView(boolean isConnected) {
+        int recyclcerVisibility = isConnected ? View.VISIBLE : View.GONE;
+        int errorVisibility = isConnected ? View.GONE : View.VISIBLE;
+        mMoviesRV.setVisibility(recyclcerVisibility);
+        mConnectionFailureTV.setVisibility(errorVisibility);
+        mRetryButton.setVisibility(errorVisibility);
+    }
+
     private void translateMovieToJsonAndStartIntent(Movie movie, Context context) throws JsonProcessingException {
         Intent startMovieDetailActivity = new Intent(context, MovieDetailActivity.class);
         ObjectMapper om = new ObjectMapper();
@@ -221,6 +270,13 @@ public class MainActivity extends AppCompatActivity
         String movieJson = om.writeValueAsString(movie);
         startMovieDetailActivity.putExtra("MovieJSON", movieJson);
         startActivity(startMovieDetailActivity);
+    }
+
+    public boolean isOnline() {
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }
 
