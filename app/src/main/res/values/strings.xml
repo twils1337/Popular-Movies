@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">Popular-Movies</string>
+    <string name="api_key"></string>
+
+    <string name="default_image_description">Image for Movie</string>
+    <string name="retry_button_text">Retry</string>
+    <string name="connection_error_text">Connection Error</string>
+
+    <string name="default_header_text">Movie Name</string>
+    <string name="default_release_date">2020</string>
+    <string name="default_run_time">60 min</string>
+    <string name="default_rating">9.5/10</string>
+    <string name="default_synopsis">Summary</string>
+    <string name="default_error_msg">Error</string>
+
+    <!-- Strings related to Settings -->
+    <string name="action_settings">Settings</string>
+
+    <!-- String related to sort by preference -->
+    <string name="sort_by_title">Sort By</string>
+    <string name="sort_by_key">sort</string>
+
+    <string name="pref_sort_by_popularity_label">Popularity</string>
+    <string name="pref_sort_by_top_rated_label">Top Rated</string>
+
+    <string name="pref_sort_by_popularity_key" translatable="false">popularity</string>
+    <string name="pref_sort_by_top_rated_key" translatable="false">topRated</string>
+</resources>
