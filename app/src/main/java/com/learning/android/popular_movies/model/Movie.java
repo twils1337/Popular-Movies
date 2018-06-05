@@ -1,124 +1,86 @@
 package com.learning.android.popular_movies.model;
 
-import android.content.Context;
-
-import com.learning.android.popular_movies.R;
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Movie {
     private final String moviePosterURLPrefix =  "http://image.tmdb.org/t/p/";
     // image sizes: "w92", "w154", "w185", "w342", "w500", "w780", or "original"
     private final String defaultThumbnailSize = "w185/";
-    @JsonProperty("isAdult")
-    private boolean isAdult;
-    @JsonProperty("backDropPath")
-    private String backDropPath;
-    @JsonProperty("genreIDs")
-    private List<Integer> genreIDs;
-    @JsonProperty("ID")
-    private Integer ID;
-    @JsonProperty("originalLang")
-    private String originalLang;
-    @JsonProperty("originalTitle")
-    private String originalTitle;
-    @JsonProperty("overview")
-    private String overview;
-    @JsonProperty("popularity")
-    private double popularity;
-    @JsonProperty("posterPath")
-    private String posterPath ;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private DateTime releaseDate ;
-    @JsonProperty("title")
+    private Integer vote_count;
+    private Integer id;
+    private boolean video;
+    private double vote_average;
     private String title;
-    @JsonProperty("isVideo")
-    private boolean isVideo;
-    @JsonProperty("voteAvg")
-    private double voteAvg;
-    @JsonProperty("voteCount")
-    private Integer voteCount;
-    @JsonProperty("runTime")
-    private int runTime;
+    private double popularity;
+    private String poster_path;
+    private String original_language;
+    private String original_title;
+    private List<Integer> genre_ids;
+    private String backdrop_path;
+    private boolean adult;
+    private String overview;
+    private Date release_date;
+    private int runTime = -1;
 
-    public Movie(){}
-
-    public Movie(boolean isAdult, String backDropPath, List<Integer> genreIDs, Integer ID,
-                 String originalLang, String originalTitle, String overview, double popularity,
-                 String posterPath, String releaseDate, String title, boolean isVideo, double voteAvg,
-                 Integer voteCount) {
-        this.isAdult = isAdult;
-        this.backDropPath = backDropPath;
-        this.genreIDs = genreIDs;
-        this.ID = ID;
-        this.originalLang = originalLang;
-        this.originalTitle = originalTitle;
-        this.overview = overview;
-        this.popularity = popularity;
-        this.posterPath = posterPath;
-        this.releaseDate = DateTimeFormat.forPattern("yyyy-MM-dd").parseDateTime(releaseDate);
-        this.title = title;
-        this.isVideo = isVideo;
-        this.voteAvg = voteAvg;
-        this.voteCount = voteCount;
-        runTime = -1;
+    public Movie(){
+        this.release_date = new Date();
+        this.genre_ids = new ArrayList<>();
     }
 
     public boolean getIsAdult(){
-        return isAdult;
+        return adult;
     }
 
     public void setIsAdult(boolean isAdult){
-        this.isAdult = isAdult;
+        this.adult = isAdult;
     }
 
 
-    public String getBackDropPath(){
-        return this.backDropPath;
+    public String getBackdrop_path(){
+        return this.backdrop_path;
     }
 
-    public void setBackDropPath(String path){
-        this.backDropPath = path;
+    public void setBackdrop_path(String path){
+        this.backdrop_path = path;
     }
 
 
-    public List<Integer> getGenreIDs(){
-        return genreIDs;
+    public List<Integer> getGenre_ids(){
+        return genre_ids;
     }
 
-    public void setGenreIDs(List<Integer> genreIDs){
-        this.genreIDs = genreIDs;
+    public void setGenre_ids(List<Integer> genre_ids){
+        this.genre_ids = genre_ids;
     }
 
-    public int getID(){
-        return ID;
+    public int getId(){
+        return id;
     }
 
-    public void setID(int id){
-        ID = id;
+    public void setId(int id){
+        this.id = id;
     }
 
-    public String getOriginalLang(){
-        return originalLang;
+    public String getOriginal_language(){
+        return original_language;
     }
 
-    public void setOriginalLang(String lang){
-        originalLang = lang;
+    public void setOriginal_language(String lang){
+        original_language = lang;
     }
 
-    public String getOriginalTitle(){
-        return originalTitle;
+    public String getOriginal_title(){
+        return original_title;
     }
 
-    public void setOriginalTitle(String title){
-        originalTitle = title;
+    public void setOriginal_title(String title){
+        original_title = title;
     }
 
     public String getOverview(){
@@ -137,20 +99,27 @@ public class Movie {
         this.popularity = popularity;
     }
 
-    public String getPosterPath(){
-        return posterPath;
+    public String getPoster_path(){
+        return poster_path;
     }
 
-    public void setPosterPath(String path){
-        posterPath = path;
+    public void setPoster_path(String path){
+        poster_path = path;
     }
 
-    public DateTime getReleaseDate(){
-        return releaseDate;
+    public Date getRelease_date(){
+        return release_date;
     }
 
-    public void setReleaseDate(String date){
-        this.releaseDate =  DateTimeFormat.forPattern("yyyy-MM-dd").parseDateTime(date);
+    public void setRelease_date(String date) throws ParseException{
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        release_date = df.parse(date);
+    }
+    public boolean isVideo(){
+        return video;
+    }
+    public void setVideo(boolean isVideo){
+        video = isVideo;
     }
 
     public String getTitle(){
@@ -161,25 +130,25 @@ public class Movie {
         this.title = title;
     }
 
-    public double getVoteAvg(){
-        return voteAvg;
+    public double getVote_average(){
+        return vote_average;
     }
 
-    public void setVoteAvg(double voteAvg){
-        this.voteAvg = voteAvg;
+    public void setVote_average(double vote_average){
+        this.vote_average = vote_average;
     }
 
-    public Integer getVoteCount() {
-        return voteCount;
+    public Integer getVote_count() {
+        return vote_count;
     }
 
-    public void setVoteCount(Integer voteCount) {
-        this.voteCount = voteCount;
+    public void setVote_count(Integer vote_count) {
+        this.vote_count = vote_count;
     }
 
     public String getFullPosterURL(){
-        if (posterPath != null){
-            return moviePosterURLPrefix + defaultThumbnailSize + posterPath;
+        if (poster_path != null){
+            return moviePosterURLPrefix + defaultThumbnailSize + poster_path;
         }
         else{
             return null;

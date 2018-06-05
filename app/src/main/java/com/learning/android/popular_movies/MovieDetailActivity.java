@@ -5,13 +5,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.google.gson.Gson;
 import com.learning.android.popular_movies.model.Movie;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.joda.JodaModule;
 import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
+import java.util.Calendar;
 
 public class MovieDetailActivity extends AppCompatActivity {
     private TextView mMovieTitle;
@@ -30,16 +30,9 @@ public class MovieDetailActivity extends AppCompatActivity {
         Intent parentIntent = getIntent();
         if (parentIntent.hasExtra("MovieJSON")){
             String movieJson = parentIntent.getStringExtra("MovieJSON");
-            ObjectMapper om = new ObjectMapper();
-            om.registerModule(new JodaModule());
-            try{
-                Movie movie = om.readValue(movieJson, Movie.class);
-                loadDataIntoView(movie);
-
-            } catch (IOException e){
-                e.printStackTrace();
-            }
-
+            Gson gson = new Gson();
+            Movie movie = gson.fromJson(movieJson, Movie.class);
+            loadDataIntoView(movie);
         }
      }
 
@@ -48,9 +41,11 @@ public class MovieDetailActivity extends AppCompatActivity {
         Picasso.with(this)
                 .load(movie.getFullPosterURL())
                 .into(mMoviePoster);
-        mDate.setText(String.valueOf(movie.getReleaseDate().getYear()));
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(movie.getRelease_date());
+        mDate.setText(String.valueOf(calendar.get(Calendar.YEAR)));
         mRunTime.setText(String.valueOf(movie.getRunTime()) + " min");
-        mRating.setText(String.valueOf(movie.getVoteAvg())+"/10");
+        mRating.setText(String.valueOf(movie.getVote_average())+"/10");
         mSynopsis.setText(movie.getOverview());
     }
 

@@ -1,6 +1,5 @@
 package com.learning.android.popular_movies.utilities;
 
-import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
