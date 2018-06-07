@@ -42,10 +42,10 @@ public class MovieDetailActivity extends AppCompatActivity {
                 .load(movie.getFullPosterURL())
                 .into(mMoviePoster);
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(movie.getRelease_date());
+        calendar.setTime(movie.getReleaseDate());
         mDate.setText(String.valueOf(calendar.get(Calendar.YEAR)));
         mRunTime.setText(String.valueOf(movie.getRunTime()) + " min");
-        mRating.setText(String.valueOf(movie.getVote_average())+"/10");
+        mRating.setText(String.valueOf(movie.getVoteAverage())+"/10");
         mSynopsis.setText(movie.getOverview());
     }
 
