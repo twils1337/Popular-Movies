@@ -21,8 +21,8 @@
             android:textStyle="bold"
             android:gravity="center_vertical"
             android:textSize="30sp"
-            android:textColor="#ffffff"
-            android:background="#00A695"
+            android:textColor="@color/white"
+            android:background="@color/dark_teal"
             android:visibility="visible"
             android:paddingStart="16dp"
             android:paddingLeft="16dp" />

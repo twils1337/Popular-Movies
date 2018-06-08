@@ -40,6 +40,8 @@ public class MovieDetailActivity extends AppCompatActivity {
         mMovieTitle.setText(movie.getTitle());
         Picasso.with(this)
                 .load(movie.getFullPosterURL())
+                .placeholder(R.drawable.movie_placeholder)
+                .error(R.drawable.robot_msg_error)
                 .into(mMoviePoster);
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(movie.getReleaseDate());
