@@ -12,6 +12,7 @@
     <string name="default_rating">9.5/10</string>
     <string name="default_synopsis">Summary</string>
     <string name="default_error_msg">Error</string>
+    <string name="default_poster_description">Poster</string>
 
     <!-- Strings related to Settings -->
     <string name="action_settings">Settings</string>

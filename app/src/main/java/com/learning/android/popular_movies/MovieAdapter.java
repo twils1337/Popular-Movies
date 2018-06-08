@@ -1,4 +1,4 @@
-package com.example.android.popular_movies;
+package com.learning.android.popular_movies;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,8 +8,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.view.View.OnClickListener;
 
-import com.example.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
-import com.example.android.popular_movies.model.Movie;
+import com.learning.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
+import com.learning.android.popular_movies.model.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -48,8 +48,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     public class MovieViewHolder extends RecyclerView.ViewHolder
                                  implements OnClickListener {
-        public ImageView movieImageView;
-        public Context context;
+        ImageView movieImageView;
+        Context context;
         MovieViewHolder(Context context, View itemView)
         {
             super(itemView);
@@ -61,6 +61,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         void bind(Movie movie){
             Picasso.with(context)
                     .load(movie.getFullPosterURL())
+                    .placeholder(R.drawable.movie_placeholder)
+                    .error(R.drawable.robot_msg_error)
                     .into(movieImageView);
         }
 
