@@ -57,10 +57,10 @@ public class MainActivity extends AppCompatActivity
         ClientService client = ServiceGenerator.createService(ClientService.class);
         Call<MovieResponse> call;
         if (sortByPopular){
-            call = client.getPopularMovies(getString(R.string.api_key));
+            call = client.getPopularMovies(BuildConfig.API_KEY);
         }
         else{
-            call = client.getTopRatedMovies(getString(R.string.api_key));
+            call = client.getTopRatedMovies(BuildConfig.API_KEY);
         }
         call.enqueue(new Callback<MovieResponse>() {
             @Override
@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity
     public void onClick(Movie movie) {
         if (movie.getRunTime() == -1) {
             ClientService client = ServiceGenerator.createService(ClientService.class);
-            Call<JsonObject> call = client.getSelectedMovie(movie.getId(), getString(R.string.api_key));
+            Call<JsonObject> call = client.getSelectedMovie(movie.getId(), BuildConfig.API_KEY);
             selectedMovie = movie;
             selectedContext = this;
             call.enqueue(new Callback<JsonObject>() {

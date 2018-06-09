@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Popular-Movies</string>
-    <string name="api_key"></string>
 
     <string name="default_image_description">Image for Movie</string>
     <string name="retry_button_text">Retry</string>
