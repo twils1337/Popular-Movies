@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -19,20 +18,17 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
+import com.learning.android.popular_movies.interfaces.ClientService;
 import com.learning.android.popular_movies.model.Movie;
-import com.learning.android.popular_movies.utilities.NetworkMovieUtils;
+import com.learning.android.popular_movies.model.MovieResponse;
 import com.learning.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
-import java.lang.reflect.Type;
-import com.google.gson.reflect.TypeToken;
+import com.learning.android.popular_movies.utilities.ServiceGenerator;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity
                           implements SharedPreferences.OnSharedPreferenceChangeListener,
@@ -43,7 +39,9 @@ public class MainActivity extends AppCompatActivity
     private TextView mConnectionFailureTV;
     private Button mRetryButton;
     private boolean sortByPopular;
-    private boolean mIsConnected = true;
+    private MovieAdapterOnClickHandler mHandler = this;
+    private Movie selectedMovie;
+    private Context selectedContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -55,14 +53,46 @@ public class MainActivity extends AppCompatActivity
         GetMoviesAndLoadUI();
     }
 
-    private void GetMoviesAndLoadUI() {
-        MovieQueryTask mqt = new MovieQueryTask(this, getString(R.string.api_key), sortByPopular);
-        mqt.execute(-1);
+    private void GetMoviesAndLoadUI() throws JsonIOException{
+        ClientService client = ServiceGenerator.createService(ClientService.class);
+        Call<MovieResponse> call;
+        if (sortByPopular){
+            call = client.getPopularMovies(getString(R.string.api_key));
+        }
+        else{
+            call = client.getTopRatedMovies(getString(R.string.api_key));
+        }
+        call.enqueue(new Callback<MovieResponse>() {
+            @Override
+            public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
+                setMainView(true);
+                MovieResponse result = response.body();
+                mAdapter = new MovieAdapter(result.getResults(), mHandler);
+                mMoviesRV.setAdapter(mAdapter);
+            }
+
+            @Override
+            public void onFailure(Call<MovieResponse> call, Throwable t) {
+                ErrorHandleRequests(t);
+            }
+        });
+
         mMoviesRV = findViewById(R.id.rvMovies);
         GridLayoutManager gridLayoutManager = new GridLayoutManager(this,2);
         mMoviesRV.setLayoutManager(gridLayoutManager);
         mMoviesRV.setHasFixedSize(true);
     }
+
+    private void ErrorHandleRequests(Throwable t) {
+        if (!isOnline()){
+            setMainView(false);
+            mConnectionFailureTV.setText(R.string.connection_error_text);
+        }
+        else{
+            t.printStackTrace();
+        }
+    }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -80,10 +110,6 @@ public class MainActivity extends AppCompatActivity
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void setErrorMessage(){
-        mConnectionFailureTV.setText(R.string.connection_error_text);
     }
 
     private void setUpSharedPreferences(){
@@ -105,17 +131,6 @@ public class MainActivity extends AppCompatActivity
                 .unregisterOnSharedPreferenceChangeListener(this);
     }
 
-    private List<Movie> createMovieList(String jsonResult) {
-        JsonElement jsonElement = new JsonParser().parse(jsonResult);
-        String results = jsonElement.getAsJsonObject().getAsJsonArray("results").toString();
-        Type listType = new TypeToken<ArrayList<Movie>>(){}.getType();
-        Gson gson = new GsonBuilder()
-                .setDateFormat("yyyy-MM-dd")
-                .create();
-        List<Movie> movies = gson.fromJson(results, listType);
-        return movies;
-    }
-
     public void retryOnClick(View view){
         GetMoviesAndLoadUI();
     }
@@ -124,101 +139,42 @@ public class MainActivity extends AppCompatActivity
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if(key.equals(getString(R.string.sort_by_key))){
             loadSortPreference(sharedPreferences);
-            MovieQueryTask mqt = new MovieQueryTask(this, getString(R.string.api_key), sortByPopular);
-            mqt.execute(-1);
+            GetMoviesAndLoadUI();
         }
     }
 
     @Override
     public void onClick(Movie movie) {
-        try {
-            if (movie.getRunTime() == -1) {
-                MovieQueryTask mqt = new MovieQueryTask(movie, getString(R.string.api_key), this);
-                mqt.execute(movie.getId());
-            }
-            else{
-                translateMovieToJsonAndStartIntent(movie,this);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
-    private int getMovieRunTime(String json){
-        int runTime = -1;
-        try {
-            JSONObject jsonObject = new JSONObject(json);
-            runTime = jsonObject.getInt("runtime");
-        } catch(JSONException e){
-            e.printStackTrace();
-        }
-        return runTime;
-    }
-
-    class MovieQueryTask extends AsyncTask<Integer, Void, String> {
-        private String mApiKey;
-        private MovieAdapterOnClickHandler mHandler;
-        private boolean mSortByPopularity;
-        private boolean grabMovieList;
-        private Movie mMovie;
-        private Context mContext;
-
-        MovieQueryTask(MovieAdapterOnClickHandler handler, String apiKey, boolean sortByPopularity){
-            mHandler = handler;
-            mApiKey = apiKey;
-            mSortByPopularity = sortByPopularity;
-            grabMovieList = true;
-            mMovie = null;
-        }
-
-        MovieQueryTask(Movie movie, String apiKey, Context context){
-            mMovie = movie;
-            mApiKey = apiKey;
-            mContext = context;
-        }
-
-        @Override
-        protected String doInBackground(Integer... IDs) {
-            if (isOnline()){
-                mIsConnected = true;
-                String result = NetworkMovieUtils.getResponseFromURL(mApiKey, mSortByPopularity, IDs[0]);
-
-                if (IDs[0] != -1){
-                    grabMovieList = false;
-                }
-                return result;
-            }
-            else{
-                mIsConnected = false;
-                return "";
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String jsonResult) {
-            setMainView(mIsConnected);
-            if (mIsConnected){
-                if (grabMovieList){
-                    mMoviesRV.setVisibility(View.VISIBLE);
-                    List<Movie> movies = createMovieList(jsonResult);
-                    mAdapter = new MovieAdapter(movies, mHandler);
-                    mMoviesRV.setAdapter(mAdapter);
-                }
-                else{
-                    int runTime = getMovieRunTime(jsonResult);
-                    mMovie.setRunTime(runTime);
-                    try{
-                        translateMovieToJsonAndStartIntent(mMovie, mContext);
-                    } catch (Exception e){
+        if (movie.getRunTime() == -1) {
+            ClientService client = ServiceGenerator.createService(ClientService.class);
+            Call<JsonObject> call = client.getSelectedMovie(movie.getId(), getString(R.string.api_key));
+            selectedMovie = movie;
+            selectedContext = this;
+            call.enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    try {
+                        JsonObject obj = response.body().getAsJsonObject();
+                        int runTime = obj.get("runtime").getAsInt();
+                        selectedMovie.setRunTime(runTime);
+                        translateMovieToJsonAndStartIntent(selectedMovie, selectedContext);
+                    }
+                    catch (Exception e){
                         e.printStackTrace();
                     }
                 }
-            }
-            else{
-                setErrorMessage();
-            }
+
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    ErrorHandleRequests(t);
+                }
+            });
+        }
+        else{
+            translateMovieToJsonAndStartIntent(selectedMovie, this);
         }
     }
+
 
     private void setMainView(boolean isConnected) {
         int recyclerVisibility = isConnected ? View.VISIBLE : View.GONE;
