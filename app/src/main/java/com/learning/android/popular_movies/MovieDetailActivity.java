@@ -59,6 +59,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         es.submit(new Runnable() {
             @Override
             public void run() {
+                Log.e("Debug", "Init Favorite: Grabbing init status of item from DB");
                 isFavorite = mDB.movieDao().getFavoriteMovieByID(selectedMovie.getId()) != null;
             }
         });
@@ -107,6 +108,7 @@ public class MovieDetailActivity extends AppCompatActivity {
         if(menu != null) {
             favoriteItem = menu.findItem(R.id.action_favorite);
             favoriteItem.setIcon(isFavorite ? R.drawable.full_star : R.drawable.empty_star);
+            SetUpObservableForFavoriteChanges();
         }
         return true;
     }
@@ -116,8 +118,6 @@ public class MovieDetailActivity extends AppCompatActivity {
         favoriteItem = item;
         if(item.getItemId() == R.id.action_favorite)
         {
-            SetUpObservableForFavoriteChanges();
-
             if (!isFavorite){
                 AddMovieToFavoritesDB();
             }

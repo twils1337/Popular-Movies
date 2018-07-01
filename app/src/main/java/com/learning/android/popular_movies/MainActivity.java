@@ -28,6 +28,7 @@ import com.learning.android.popular_movies.interfaces.ClientService;
 import com.learning.android.popular_movies.database.Movie;
 import com.learning.android.popular_movies.responses.MovieResponse;
 import com.learning.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
+import com.learning.android.popular_movies.utilities.AppExecutors;
 import com.learning.android.popular_movies.utilities.ServiceGenerator;
 
 import java.util.List;
@@ -60,6 +61,7 @@ public class MainActivity extends AppCompatActivity
         mRetryButton = findViewById(R.id.retry_button);
         setUpSharedPreferences();
         GetMoviesAndLoadUI();
+        setUpObserverForFavoriteListChanges();
     }
 
     private void GetMoviesAndLoadUI() throws JsonIOException{
@@ -89,7 +91,13 @@ public class MainActivity extends AppCompatActivity
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                 setMainView(true);
                 MovieResponse result = response.body();
-                createAndSetAdapter(result.getResults());
+                if(mAdapter == null){
+                    createAndSetAdapter(result.getResults());
+                }
+                else{
+                    mAdapter.setMovies(result.getResults());
+                }
+
             }
 
             @Override
@@ -99,14 +107,32 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void getMoviesFromDBAndDisplay(){
+    private void setUpObserverForFavoriteListChanges(){
         final LiveData<List<Movie>> movies = mDB.movieDao().fetchAllFavoriteMovies();
         movies.observe(this, new Observer<List<Movie>>() {
             @Override
             public void onChanged(@Nullable List<Movie> favoriteMovies) {
-                mAdapter.setMovies(favoriteMovies);
+                if (showFavorites){
+                    mAdapter.setMovies(favoriteMovies);
+                }
             }
         });
+    }
+
+    private void getMoviesFromDBAndDisplay(){
+        AppExecutors.getsInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                final List<Movie> movies = mDB.movieDao().fetchAllFavoritedMovies();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAdapter.setMovies(movies);
+                    }
+                });
+            }
+        });
+
     }
 
     private void createAndSetAdapter(List<Movie> movies) {

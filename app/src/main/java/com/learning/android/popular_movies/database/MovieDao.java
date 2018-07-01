@@ -15,6 +15,9 @@ public interface MovieDao {
     @Query("Select * From movies Order By releaseDate")
     LiveData<List<Movie>> fetchAllFavoriteMovies();
 
+    @Query("Select * From movies Order By releaseDate")
+    List<Movie> fetchAllFavoritedMovies();
+
     @Query("Select * From movies Where id = :id")
     LiveData<Movie> getMovieByID(int id);
 
