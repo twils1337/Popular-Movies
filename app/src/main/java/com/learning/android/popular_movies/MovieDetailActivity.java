@@ -1,6 +1,6 @@
 package com.learning.android.popular_movies;
 
-import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +17,8 @@ import com.learning.android.popular_movies.database.AppDataBase;
 import com.learning.android.popular_movies.database.Movie;
 
 import com.learning.android.popular_movies.utilities.AppExecutors;
+import com.learning.android.popular_movies.viewModels.MovieModelFactory;
+import com.learning.android.popular_movies.viewModels.MovieViewModel;
 import com.squareup.picasso.Picasso;
 
 import java.util.Calendar;
@@ -59,7 +61,6 @@ public class MovieDetailActivity extends AppCompatActivity {
         es.submit(new Runnable() {
             @Override
             public void run() {
-                Log.e("Debug", "Init Favorite: Grabbing init status of item from DB");
                 isFavorite = mDB.movieDao().getFavoriteMovieByID(selectedMovie.getId()) != null;
             }
         });
@@ -130,8 +131,9 @@ public class MovieDetailActivity extends AppCompatActivity {
     }
 
     private void SetUpObservableForFavoriteChanges() {
-        LiveData<Movie> movie = mDB.movieDao().getMovieByID(selectedMovie.getId());
-        movie.observe(this, new Observer<Movie>() {
+        MovieModelFactory factory = new MovieModelFactory(mDB, selectedMovie.getId());
+        MovieViewModel viewModel = ViewModelProviders.of(this,factory).get(MovieViewModel.class);
+        viewModel.getMovie().observe(this, new Observer<Movie>() {
             @Override
             public void onChanged(@Nullable Movie movie) {
                 if (movie == null){

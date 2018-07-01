@@ -1,7 +1,7 @@
 package com.learning.android.popular_movies;
 
-import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -30,6 +30,7 @@ import com.learning.android.popular_movies.responses.MovieResponse;
 import com.learning.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
 import com.learning.android.popular_movies.utilities.AppExecutors;
 import com.learning.android.popular_movies.utilities.ServiceGenerator;
+import com.learning.android.popular_movies.viewModels.MainViewModel;
 
 import java.util.List;
 
@@ -61,7 +62,7 @@ public class MainActivity extends AppCompatActivity
         mRetryButton = findViewById(R.id.retry_button);
         setUpSharedPreferences();
         GetMoviesAndLoadUI();
-        setUpObserverForFavoriteListChanges();
+        setUpViewModelForFavoritesChanges();
     }
 
     private void GetMoviesAndLoadUI() throws JsonIOException{
@@ -107,9 +108,9 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void setUpObserverForFavoriteListChanges(){
-        final LiveData<List<Movie>> movies = mDB.movieDao().fetchAllFavoriteMovies();
-        movies.observe(this, new Observer<List<Movie>>() {
+    private void setUpViewModelForFavoritesChanges(){
+        MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.getMovies().observe(this, new Observer<List<Movie>>() {
             @Override
             public void onChanged(@Nullable List<Movie> favoriteMovies) {
                 if (showFavorites){
