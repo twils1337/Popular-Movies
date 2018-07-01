@@ -20,11 +20,15 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
+import com.learning.android.popular_movies.database.AppDataBase;
 import com.learning.android.popular_movies.interfaces.ClientService;
-import com.learning.android.popular_movies.model.Movie;
-import com.learning.android.popular_movies.model.MovieResponse;
+import com.learning.android.popular_movies.database.Movie;
+import com.learning.android.popular_movies.responses.MovieResponse;
 import com.learning.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
+import com.learning.android.popular_movies.utilities.AppExecutors;
 import com.learning.android.popular_movies.utilities.ServiceGenerator;
+
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,13 +43,16 @@ public class MainActivity extends AppCompatActivity
     private TextView mConnectionFailureTV;
     private Button mRetryButton;
     private boolean sortByPopular;
+    private boolean showFavorites = false;
     private MovieAdapterOnClickHandler mHandler = this;
     private Movie selectedMovie;
     private Context selectedContext;
+    private AppDataBase mDB;
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
+        mDB = AppDataBase.getsInstance(getApplicationContext());
         setContentView(R.layout.activity_main);
         mConnectionFailureTV = findViewById(R.id.tv_connection_Failure);
         mRetryButton = findViewById(R.id.retry_button);
@@ -54,7 +61,20 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void GetMoviesAndLoadUI() throws JsonIOException{
-        ClientService client = ServiceGenerator.createService(ClientService.class);
+        if (showFavorites){
+            getMoviesFromDBAndDisplay();
+        }
+        else{
+            ClientService client = ServiceGenerator.createService(ClientService.class);
+            getMoviesFromInternetAndDisplay(client);
+        }
+        mMoviesRV = findViewById(R.id.rvMovies);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(this,2);
+        mMoviesRV.setLayoutManager(gridLayoutManager);
+        mMoviesRV.setHasFixedSize(true);
+    }
+
+    private void getMoviesFromInternetAndDisplay(ClientService client) {
         Call<MovieResponse> call;
         if (sortByPopular){
             call = client.getPopularMovies(BuildConfig.API_KEY);
@@ -67,8 +87,7 @@ public class MainActivity extends AppCompatActivity
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                 setMainView(true);
                 MovieResponse result = response.body();
-                mAdapter = new MovieAdapter(result.getResults(), mHandler);
-                mMoviesRV.setAdapter(mAdapter);
+                createAndSetAdapter(result.getResults());
             }
 
             @Override
@@ -76,12 +95,28 @@ public class MainActivity extends AppCompatActivity
                 ErrorHandleRequests(t);
             }
         });
-
-        mMoviesRV = findViewById(R.id.rvMovies);
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(this,2);
-        mMoviesRV.setLayoutManager(gridLayoutManager);
-        mMoviesRV.setHasFixedSize(true);
     }
+
+    private void getMoviesFromDBAndDisplay(){
+        AppExecutors.getsInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                final List<Movie> movies = mDB.movieDao().fetchAllFavoriteMovies();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAdapter.setMovies(movies);
+                    }
+                });
+            }
+        });
+    }
+
+    private void createAndSetAdapter(List<Movie> movies) {
+        mAdapter = new MovieAdapter(movies, mHandler);
+        mMoviesRV.setAdapter(mAdapter);
+    }
+
 
     private void ErrorHandleRequests(Throwable t) {
         if (!isOnline()){
@@ -103,13 +138,18 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int selectedID = item.getItemId();
-        if (selectedID == R.id.action_settings){
-            Intent startSettingsActivity = new Intent(this, SettingsActivity.class);
-            startActivity(startSettingsActivity);
-            return true;
+        switch (item.getItemId()){
+            case R.id.action_settings:
+                Intent startSettingsActivity = new Intent(this, SettingsActivity.class);
+                startActivity(startSettingsActivity);
+                return true;
+            case R.id.action_favorites:
+                showFavorites = !showFavorites;
+                GetMoviesAndLoadUI();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     private void setUpSharedPreferences(){
@@ -171,6 +211,7 @@ public class MainActivity extends AppCompatActivity
             });
         }
         else{
+            selectedMovie = movie;
             translateMovieToJsonAndStartIntent(selectedMovie, this);
         }
     }

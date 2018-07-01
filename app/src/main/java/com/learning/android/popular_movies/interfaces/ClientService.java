@@ -1,7 +1,7 @@
 package com.learning.android.popular_movies.interfaces;
 
 import com.google.gson.JsonObject;
-import com.learning.android.popular_movies.model.MovieResponse;
+import com.learning.android.popular_movies.responses.MovieResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

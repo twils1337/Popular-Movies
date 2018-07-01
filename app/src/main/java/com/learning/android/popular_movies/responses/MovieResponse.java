@@ -1,4 +1,6 @@
-package com.learning.android.popular_movies.model;
+package com.learning.android.popular_movies.responses;
+
+import com.learning.android.popular_movies.database.Movie;
 
 import java.util.List;
 
