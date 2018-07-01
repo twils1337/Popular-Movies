@@ -1,11 +1,14 @@
 package com.learning.android.popular_movies;
 
+import android.arch.lifecycle.LiveData;
+import android.arch.lifecycle.Observer;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -25,7 +28,6 @@ import com.learning.android.popular_movies.interfaces.ClientService;
 import com.learning.android.popular_movies.database.Movie;
 import com.learning.android.popular_movies.responses.MovieResponse;
 import com.learning.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
-import com.learning.android.popular_movies.utilities.AppExecutors;
 import com.learning.android.popular_movies.utilities.ServiceGenerator;
 
 import java.util.List;
@@ -98,16 +100,11 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void getMoviesFromDBAndDisplay(){
-        AppExecutors.getsInstance().diskIO().execute(new Runnable() {
+        final LiveData<List<Movie>> movies = mDB.movieDao().fetchAllFavoriteMovies();
+        movies.observe(this, new Observer<List<Movie>>() {
             @Override
-            public void run() {
-                final List<Movie> movies = mDB.movieDao().fetchAllFavoriteMovies();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        mAdapter.setMovies(movies);
-                    }
-                });
+            public void onChanged(@Nullable List<Movie> favoriteMovies) {
+                mAdapter.setMovies(favoriteMovies);
             }
         });
     }

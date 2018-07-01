@@ -1,6 +1,8 @@
 package com.learning.android.popular_movies;
 
+import android.arch.lifecycle.LiveData;
 import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,8 +20,8 @@ import com.learning.android.popular_movies.utilities.AppExecutors;
 import com.squareup.picasso.Picasso;
 
 import java.util.Calendar;
-import java.util.Date;
-import java.util.concurrent.Executor;
+
+import android.arch.lifecycle.Observer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +36,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     private Movie selectedMovie;
     private AppDataBase mDB;
     private MenuItem favoriteItem;
-    private boolean isFavorited;
+    private boolean isFavorite;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,8 +50,26 @@ public class MovieDetailActivity extends AppCompatActivity {
             Gson gson = new Gson();
             selectedMovie = gson.fromJson(movieJson, Movie.class);
             loadDataIntoView(selectedMovie);
+            initFavoriteStatus();
         }
      }
+
+    private void initFavoriteStatus() {
+        ExecutorService es = Executors.newSingleThreadExecutor();
+        es.submit(new Runnable() {
+            @Override
+            public void run() {
+                isFavorite = mDB.movieDao().getFavoriteMovieByID(selectedMovie.getId()) != null;
+            }
+        });
+        es.shutdown();
+        try{
+            es.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        }
+        catch (Exception e){
+            Log.e("Error", "onCreate: "+e.getMessage() );
+        }
+    }
 
     private void loadDataIntoView(Movie movie) {
         mMovieTitle.setText(movie.getTitle());
@@ -84,75 +104,69 @@ public class MovieDetailActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.detail_menu, menu);
-        if(menu != null){
+        if(menu != null) {
             favoriteItem = menu.findItem(R.id.action_favorite);
-            if(favoriteItem != null){
-                if (selectedMovie != null){
-                    AppExecutors.getsInstance().diskIO().execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            final Movie sMovie = selectedMovie;
-                            final Movie movie = mDB.movieDao().getMovieByID(sMovie.getId());
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    favoriteItem.setIcon(movie != null ? R.drawable.full_star : R.drawable.empty_star);
-                                }
-                            });
-                        }
-                    });
-                }
-            }
+            favoriteItem.setIcon(isFavorite ? R.drawable.full_star : R.drawable.empty_star);
         }
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        favoriteItem = item;
         if(item.getItemId() == R.id.action_favorite)
         {
-            ExecutorService es = Executors.newSingleThreadExecutor();
-            es.submit(new Runnable() {
-                @Override
-                public void run() {
-                    isFavorited = mDB.movieDao().getMovieByID(selectedMovie.getId()) != null;
-                }
-            });
-            es.shutdown();
-            try{
-                es.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-            }
-            catch (Exception e){
-                Log.e("Error", "onOptionsItemSelected: "+e.getMessage() );
-            }
+            SetUpObservableForFavoriteChanges();
 
-
-            if (!isFavorited){
-                AppExecutors.getsInstance().diskIO().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        Movie movie = mDB.movieDao().getMovieByID(selectedMovie.getId());
-                        if (movie==null){
-                            mDB.movieDao().insertMovie(selectedMovie);
-                        }
-                    }
-                });
-                item.setIcon(R.drawable.full_star);
+            if (!isFavorite){
+                AddMovieToFavoritesDB();
             }
             else{
-                AppExecutors.getsInstance().diskIO().execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        Movie movie = mDB.movieDao().getMovieByID(selectedMovie.getId());
-                        if (movie!=null){
-                            mDB.movieDao().deleteMovie(movie);
-                        }
-                    }
-                });
-                item.setIcon(R.drawable.empty_star);
+                RemoveMovieFromFavoritesDB();
             }
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void SetUpObservableForFavoriteChanges() {
+        LiveData<Movie> movie = mDB.movieDao().getMovieByID(selectedMovie.getId());
+        movie.observe(this, new Observer<Movie>() {
+            @Override
+            public void onChanged(@Nullable Movie movie) {
+                if (movie == null){
+                    isFavorite = false;
+                    favoriteItem.setIcon(R.drawable.empty_star);
+                }
+                else {
+                    isFavorite = true;
+                    favoriteItem.setIcon(R.drawable.full_star);
+                }
+            }
+        });
+    }
+
+    private void AddMovieToFavoritesDB() {
+        AppExecutors.getsInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                Movie movie = mDB.movieDao().getFavoriteMovieByID(selectedMovie.getId());
+                if (movie==null){
+                    mDB.movieDao().insertMovie(selectedMovie);
+                }
+            }
+        });
+    }
+
+    private void RemoveMovieFromFavoritesDB() {
+        AppExecutors.getsInstance().diskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                Movie movie = mDB.movieDao().getFavoriteMovieByID(selectedMovie.getId());
+                if (movie!=null){
+                    mDB.movieDao().deleteMovie(movie);
+                }
+            }
+        });
     }
 }
