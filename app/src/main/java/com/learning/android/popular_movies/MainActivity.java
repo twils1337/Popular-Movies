@@ -13,6 +13,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -32,11 +33,16 @@ import com.learning.android.popular_movies.utilities.AppExecutors;
 import com.learning.android.popular_movies.utilities.ServiceGenerator;
 import com.learning.android.popular_movies.viewModels.MainViewModel;
 
+import java.util.Arrays;
 import java.util.List;
 
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function3;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import io.reactivex.Observable;
 
 public class MainActivity extends AppCompatActivity
                           implements SharedPreferences.OnSharedPreferenceChangeListener,
@@ -52,6 +58,7 @@ public class MainActivity extends AppCompatActivity
     private Movie selectedMovie;
     private Context selectedContext;
     private AppDataBase mDB;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState){
@@ -92,15 +99,16 @@ public class MainActivity extends AppCompatActivity
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                 setMainView(true);
                 MovieResponse result = response.body();
-                if(mAdapter == null){
+                if(mAdapter == null && result != null){
                     createAndSetAdapter(result.getResults());
                 }
-                else{
+                else if (result != null){
                     mAdapter.setMovies(result.getResults());
                 }
-
+                else{//Server down or some other error
+                   setMainView(false);
+                }
             }
-
             @Override
             public void onFailure(Call<MovieResponse> call, Throwable t) {
                 ErrorHandleRequests(t);
@@ -128,7 +136,9 @@ public class MainActivity extends AppCompatActivity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        mAdapter.setMovies(movies);
+                        if (mAdapter != null && showFavorites){
+                            mAdapter.setMovies(movies);
+                        }
                     }
                 });
             }
@@ -208,38 +218,34 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onClick(Movie movie) {
-        if (movie.getRunTime() == -1) {
-            ClientService client = ServiceGenerator.createService(ClientService.class);
-            Call<JsonObject> call = client.getSelectedMovie(movie.getId(), BuildConfig.API_KEY);
+    public void onClick(final Movie movie) {
             selectedMovie = movie;
-            selectedContext = this;
-            call.enqueue(new Callback<JsonObject>() {
+            ClientService client = ServiceGenerator.createService(ClientService.class);
+            Observable.zip(client.getSelectedMovie(movie.getId(), BuildConfig.API_KEY),
+                    client.getMovieTrailers(movie.getId(), BuildConfig.API_KEY),
+                    client.getMovieReviews(movie.getId(), BuildConfig.API_KEY),
+                    new Function3<JsonObject, JsonObject, JsonObject, List<JsonObject>>() {
+                        @Override
+                        public List<JsonObject> apply(JsonObject movieDetails, JsonObject trailers, JsonObject reviews) throws Exception {
+                            List<JsonObject> results = Arrays.asList(movieDetails,trailers,reviews);
+                            return results;
+                        }
+                    })
+                .subscribeOn(Schedulers.io())
+                .subscribe(new Consumer<List<JsonObject>>() {
                 @Override
-                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                    try {
-                        JsonObject obj = response.body().getAsJsonObject();
-                        int runTime = obj.get("runtime").getAsInt();
-                        selectedMovie.setRunTime(runTime);
-                        translateMovieToJsonAndStartIntent(selectedMovie, selectedContext);
-                    }
-                    catch (Exception e){
-                        e.printStackTrace();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<JsonObject> call, Throwable t) {
-                    ErrorHandleRequests(t);
+                public void accept(List<JsonObject> jsonObjects) throws Exception {
+                    JsonObject movieDetails = jsonObjects.get(0);
+                    JsonObject trailers = jsonObjects.get(1);
+                    JsonObject reviews = jsonObjects.get(2);
+                    selectedMovie.setRunTime(movieDetails.get("runtime").getAsInt());
+                    Gson gson = new Gson();
+                    List<String> JsonResults = Arrays.asList(gson.toJson(selectedMovie),
+                            gson.toJson(trailers), gson.toJson(reviews));
+                    translateMovieToJsonAndStartIntent(JsonResults);
                 }
             });
-        }
-        else{
-            selectedMovie = movie;
-            translateMovieToJsonAndStartIntent(selectedMovie, this);
-        }
     }
-
 
     private void setMainView(boolean isConnected) {
         int recyclerVisibility = isConnected ? View.VISIBLE : View.GONE;
@@ -249,10 +255,11 @@ public class MainActivity extends AppCompatActivity
         mRetryButton.setVisibility(errorVisibility);
     }
 
-    private void translateMovieToJsonAndStartIntent(Movie movie, Context context){
-        Intent startMovieDetailActivity = new Intent(context, MovieDetailActivity.class);
-        Gson gson = new Gson();
-        startMovieDetailActivity.putExtra("MovieJSON", gson.toJson(movie));
+    private void translateMovieToJsonAndStartIntent(List<String> info){
+        Intent startMovieDetailActivity = new Intent(this, MovieDetailActivity.class);
+        startMovieDetailActivity.putExtra("MovieJSON",info.get(0));
+        startMovieDetailActivity.putExtra("TrailersJSON", info.get(1));
+        startMovieDetailActivity.putExtra("ReviewsJSON", info.get(2));
         startActivity(startMovieDetailActivity);
     }
 

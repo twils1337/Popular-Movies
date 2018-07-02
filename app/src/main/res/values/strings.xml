@@ -15,6 +15,10 @@
 
     <string name="movie_detail_activity">Movie Detail</string>
 
+    <!-- Labels -->
+    <string name="synopsis_label_text">Synopsis</string>
+    <string name="trailer_label_text">Trailers</string>
+
     <!-- Strings related to Settings -->
     <string name="action_settings">Settings</string>
     <string name="favorite_movies">Favorites</string>

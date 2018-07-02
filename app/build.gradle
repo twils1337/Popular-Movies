@@ -23,12 +23,13 @@ android {
         mavenCentral()
     }
     sourceSets { main { java.srcDirs = ['src/main/java', 'src/main/java/2'] } }
+    compileOptions {
+    }
 }
 
 dependencies {
     def room_version = "1.1.1"
     def lifecycle_version = "1.1.1"
-
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.1.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.0'
@@ -42,11 +43,10 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.4.0'
     implementation 'com.squareup.retrofit2:retrofit-converters:2.4.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.4.0'
-
-
     implementation "android.arch.persistence.room:runtime:$room_version"
     annotationProcessor "android.arch.persistence.room:compiler:$room_version"
-
     implementation "android.arch.lifecycle:extensions:$lifecycle_version"
     annotationProcessor "android.arch.lifecycle:compiler:$lifecycle_version"
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.16'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.4.0'
 }
