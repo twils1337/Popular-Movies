@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -36,6 +37,8 @@ import com.learning.android.popular_movies.viewModels.MainViewModel;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.security.auth.login.LoginException;
+
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function3;
 import io.reactivex.schedulers.Schedulers;
@@ -52,14 +55,16 @@ public class MainActivity extends AppCompatActivity
     private RecyclerView mMoviesRV;
     private TextView mConnectionFailureTV;
     private Button mRetryButton;
-    private boolean sortByPopular;
-    private boolean showFavorites = false;
+    private Sort selectedSort = Sort.popular;
     private MovieAdapterOnClickHandler mHandler = this;
     private Movie selectedMovie;
-    private Context selectedContext;
     private AppDataBase mDB;
 
-
+    public enum Sort{
+        popular,
+        top_rated,
+        favorites
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -73,7 +78,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void GetMoviesAndLoadUI() throws JsonIOException{
-        if (showFavorites){
+        if (selectedSort == Sort.favorites){
             getMoviesFromDBAndDisplay();
         }
         else{
@@ -88,7 +93,7 @@ public class MainActivity extends AppCompatActivity
 
     private void getMoviesFromInternetAndDisplay(ClientService client) {
         Call<MovieResponse> call;
-        if (sortByPopular){
+        if (selectedSort == Sort.popular){
             call = client.getPopularMovies(BuildConfig.API_KEY);
         }
         else{
@@ -121,7 +126,7 @@ public class MainActivity extends AppCompatActivity
         viewModel.getMovies().observe(this, new Observer<List<Movie>>() {
             @Override
             public void onChanged(@Nullable List<Movie> favoriteMovies) {
-                if (showFavorites){
+                if (selectedSort == Sort.favorites){
                     mAdapter.setMovies(favoriteMovies);
                 }
             }
@@ -136,7 +141,7 @@ public class MainActivity extends AppCompatActivity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (mAdapter != null && showFavorites){
+                        if (mAdapter != null && selectedSort == Sort.favorites){
                             mAdapter.setMovies(movies);
                         }
                     }
@@ -177,10 +182,6 @@ public class MainActivity extends AppCompatActivity
                 Intent startSettingsActivity = new Intent(this, SettingsActivity.class);
                 startActivity(startSettingsActivity);
                 return true;
-            case R.id.action_favorites:
-                showFavorites = !showFavorites;
-                GetMoviesAndLoadUI();
-                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -195,7 +196,20 @@ public class MainActivity extends AppCompatActivity
     private void loadSortPreference(SharedPreferences sp){
         String defaultKey = getString(R.string.pref_sort_by_popularity_key);
         String prefSortValue = sp.getString(getString(R.string.sort_by_key), defaultKey);
-        sortByPopular = prefSortValue.equals(defaultKey);
+        switch (prefSortValue){
+            case "popularity":
+                selectedSort = Sort.popular;
+                break;
+            case "topRated":
+                selectedSort = Sort.top_rated;
+                break;
+            case "favorites":
+                selectedSort = Sort.favorites;
+                break;
+            default:
+                selectedSort = Sort.popular;
+                break;
+        }
     }
 
     @Override
