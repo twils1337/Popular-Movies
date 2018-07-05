@@ -9,7 +9,7 @@ import android.widget.ImageView;
 import android.view.View.OnClickListener;
 
 import com.learning.android.popular_movies.interfaces.MovieAdapterOnClickHandler;
-import com.learning.android.popular_movies.model.Movie;
+import com.learning.android.popular_movies.database.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -43,6 +43,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
     public void onBindViewHolder(MovieViewHolder holder, int position) {
         Movie movie = mMovies.get(position);
         holder.bind(movie);
+    }
+
+    public void setMovies(List<Movie> movies){
+        mMovies = movies;
+        notifyDataSetChanged();
     }
 
 
