@@ -25,6 +25,7 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import com.learning.android.popular_movies.database.AppDataBase;
 import com.learning.android.popular_movies.interfaces.ClientService;
 import com.learning.android.popular_movies.database.Movie;
@@ -34,6 +35,7 @@ import com.learning.android.popular_movies.utilities.AppExecutors;
 import com.learning.android.popular_movies.utilities.ServiceGenerator;
 import com.learning.android.popular_movies.viewModels.MainViewModel;
 
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,6 +61,7 @@ public class MainActivity extends AppCompatActivity
     private MovieAdapterOnClickHandler mHandler = this;
     private Movie selectedMovie;
     private AppDataBase mDB;
+    private List<Movie> displayMovies;
 
     public enum Sort{
         popular,
@@ -103,15 +106,23 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                 setMainView(true);
+                Log.e("start", "onResponse: Goes In Here" );
+
                 MovieResponse result = response.body();
                 if(mAdapter == null && result != null){
+                    Log.e("start", "onResponse: Goes In Here 1" );
+
                     createAndSetAdapter(result.getResults());
                 }
                 else if (result != null){
+                    Log.e("start", "onResponse: Goes In Here 2" );
+
                     mAdapter.setMovies(result.getResults());
                 }
                 else{//Server down or some other error
-                   setMainView(false);
+                    Log.e("error", "onResponse: Goes In Here 3" );
+
+                    setMainView(false);
                 }
             }
             @Override
@@ -127,7 +138,13 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onChanged(@Nullable List<Movie> favoriteMovies) {
                 if (selectedSort == Sort.favorites){
-                    mAdapter.setMovies(favoriteMovies);
+                    if (mAdapter == null) {
+                        createAndSetAdapter(favoriteMovies);
+                    }
+                    else{
+                        mAdapter.setMovies(favoriteMovies);
+                    }
+
                 }
             }
         });
@@ -138,13 +155,20 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void run() {
                 final List<Movie> movies = mDB.movieDao().fetchAllFavoritedMovies();
+                displayMovies = movies;
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (mAdapter != null && selectedSort == Sort.favorites){
-                            mAdapter.setMovies(movies);
+                        if (selectedSort == Sort.favorites){
+                            if (mAdapter != null ){
+                                mAdapter.setMovies(movies);
+                            }
+                            else{
+                                createAndSetAdapter(movies);
+                            }
                         }
                     }
+
                 });
             }
         });
@@ -282,6 +306,23 @@ public class MainActivity extends AppCompatActivity
                 (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Gson gson = new Gson();
+        outState.putString("Movies", gson.toJson(displayMovies));
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        Gson gson = new Gson();
+        if (savedInstanceState != null && savedInstanceState.containsKey("Movies")){
+            Type listType = new TypeToken<List<Movie>>(){}.getType();
+            displayMovies = gson.fromJson(savedInstanceState.getString("Movies"), listType);
+            createAndSetAdapter(displayMovies);
+        }
+        super.onRestoreInstanceState(savedInstanceState);
     }
 }
 
