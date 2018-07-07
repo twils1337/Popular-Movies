@@ -106,22 +106,14 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                 setMainView(true);
-                Log.e("start", "onResponse: Goes In Here" );
-
                 MovieResponse result = response.body();
                 if(mAdapter == null && result != null){
-                    Log.e("start", "onResponse: Goes In Here 1" );
-
                     createAndSetAdapter(result.getResults());
                 }
                 else if (result != null){
-                    Log.e("start", "onResponse: Goes In Here 2" );
-
                     mAdapter.setMovies(result.getResults());
                 }
                 else{//Server down or some other error
-                    Log.e("error", "onResponse: Goes In Here 3" );
-
                     setMainView(false);
                 }
             }
