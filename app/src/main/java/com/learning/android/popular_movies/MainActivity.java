@@ -151,6 +151,7 @@ public class MainActivity extends AppCompatActivity
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        setMainView(true);
                         if (selectedSort == Sort.favorites){
                             if (mAdapter != null ){
                                 mAdapter.setMovies(movies);
@@ -160,7 +161,6 @@ public class MainActivity extends AppCompatActivity
                             }
                         }
                     }
-
                 });
             }
         });
