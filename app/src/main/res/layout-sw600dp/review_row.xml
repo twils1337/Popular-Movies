@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/default_review_body"
-        android:textSize="@dimen/reviewRowTextSize"
+        android:textSize="@dimen/reviewRowTextSizeLg"
         android:textColor="@color/black"/>
     <TextView
         android:id="@+id/author_name"
@@ -15,6 +15,6 @@
         android:layout_height="wrap_content"
         android:gravity="right"
         android:text="@string/default_author"
-        android:textSize="@dimen/reviewRowTextSize"
+        android:textSize="@dimen/reviewRowTextSizeLg"
         android:textColor="@color/black"/>
 </LinearLayout>

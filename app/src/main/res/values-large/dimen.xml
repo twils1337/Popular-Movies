@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--Main Activity-->
+    <dimen name="rvTextSizeLg">25sp</dimen>
+    <dimen name="retryButtonWidthLg">100dp</dimen>
+    <dimen name="retryButtonHeightLg">50dp</dimen>
+    <dimen name="buttonPaddingLg">8dp</dimen>
+    <dimen name="buttonTextSizeLg">15sp</dimen>
+
+    <!--Movie Detail Activity-->
+    <dimen name="movieTitleHeightLg">85dp</dimen>
+    <dimen name="movieTitleTextSizeLg">30sp</dimen>
+    <dimen name="movieTitlePaddingStartAndEndLg">16dp</dimen>
+
+    <dimen name="posterWidthLg">100dp</dimen>
+    <dimen name="posterHeightLg">150dp</dimen>
+    <dimen name="posterMarginLeftAndStartLg">8dp</dimen>
+    <dimen name="posterMarginTopLg">8dp</dimen>
+
+    <dimen name="releaseDateTextSizeLg">30sp</dimen>
+    <dimen name="releaseDateWidthLg">120dp</dimen>
+    <dimen name="releaseDateHeightLg">40dp</dimen>
+    <dimen name="releaseDateMarginLeftAndStartLg">30dp</dimen>
+    <dimen name="releaseDateMarginTopLg">16dp</dimen>
+
+
+    <dimen name="runtimeTextSizeLg">20sp</dimen>
+    <dimen name="runtimeMarginLeftAndStartLg">28dp</dimen>
+    <dimen name="runtimeMarginTopLg">14dp</dimen>
+
+    <dimen name="ratingTextSizeLg">18sp</dimen>
+    <dimen name="ratingMarginLeftAndStartLg">28dp</dimen>
+    <dimen name="ratingMarginTopLg">16dp</dimen>
+
+    <dimen name="synopsisLabelTextSizeLg">20sp</dimen>
+    <dimen name="synopsisLabelRequiredMarginSizesLg">8dp</dimen>
+
+    <dimen name="synopsisBodyTextSizeLg">20dp</dimen>
+    <dimen name="synopsisBodyRequiredMarginsBesidesTopLg">32dp</dimen>
+    <dimen name="synopsisBodyMarginTopLg">16dp</dimen>
+
+
+    <dimen name="separatorHeightLg">2dp</dimen>
+    <dimen name="separatorMarginsBesidesTopLg">8dp</dimen>
+    <dimen name="separatorMarginTopLg">10dp</dimen>
+
+    <dimen name="trailerLabelTextSizeLg">20sp</dimen>
+    <dimen name="trailerLabelRequiredMarginsLg">8dp</dimen>
+
+    <dimen name="trailerLLMarginsBesidesTopLg">32dp</dimen>
+    <dimen name="trailerLLMarginTopLg">8dp</dimen>
+
+    <dimen name="secondSeparatorMarginTopLg">16dp</dimen>
+
+    <dimen name="reviewsLabelTextSizeLg">20sp</dimen>
+    <dimen name="reviewsLabelRequiredMarginsLg">8dp</dimen>
+
+    <dimen name="reviewLLMarginsBesideTopLg">32dp</dimen>
+    <dimen name="reviewLLMarginTopLg">20dp</dimen>
+    <dimen name="reviewLLMarginBottomLg">8dp</dimen>
+
+    <!--Review Row-->
+    <dimen name="reviewRowTextSizeLg">25sp</dimen>
+
+    <!--Trailer Row-->
+    <dimen name="trailerXYLg">45dp</dimen>
+    <dimen name="descriptionTextSizeLg">25sp</dimen>
+    <dimen name="buttonMarginLeftLG">16dp</dimen>
+</resources>
