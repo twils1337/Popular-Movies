@@ -6,8 +6,8 @@
 
     <ImageButton
         android:id="@+id/play_trailer_button"
-        android:layout_width="@dimen/trailerXY"
-        android:layout_height="@dimen/trailerXY"
+        android:layout_width="@dimen/trailerXYLg"
+        android:layout_height="@dimen/trailerXYLg"
         android:background="@drawable/play_button" />
 
     <TextView
@@ -16,7 +16,7 @@
         android:layout_height="match_parent"
         android:gravity="center_vertical"
         android:text="@string/default_trailer_description"
-        android:textSize="@dimen/descriptionTextSize"
+        android:textSize="@dimen/descriptionTextSizeLg"
         android:textStyle="bold"
         android:layout_marginLeft="@dimen/buttonMarginLeft"/>
 </LinearLayout>
